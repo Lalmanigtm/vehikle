@@ -1,9 +1,8 @@
 import mongoose from "mongoose";
-// 1
-const MONGODB_URL = process.env.MONGODB_URL;
+const MONGODB_URI = process.env.MONGODB_URI;
 
-if (!MONGODB_URL) {
-  throw new Error("MONGODB_URL is missing in environment variables");
+if (!MONGODB_URI) {
+  throw new Error("MONGODB_URI is missing in environment variables");
 }
 // 2.first go to global.d.ts and create there code and return from here..
 let cached = global.mongooseConn;
@@ -15,7 +14,7 @@ if (!cached) {
   };
 }
 
-const connectDb = async () => {
+export const connectDb = async () => {
   try {
     // 1. Return existing connection
     if (cached.conn) {
@@ -31,7 +30,7 @@ const connectDb = async () => {
     if (!cached.promise) {
       console.log("🚀 Creating new database connection...");
 
-      cached.promise = mongoose.connect(MONGODB_URL).then((c) => c.connection);
+      cached.promise = mongoose.connect(MONGODB_URI).then((c) => c.connection);
     }
 
     // 3. Await connection
