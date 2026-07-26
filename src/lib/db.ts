@@ -1,47 +1,76 @@
-import mongoose from "mongoose";
+import mongoose, { Connection } from "mongoose";
+
 const MONGODB_URI = process.env.MONGODB_URI;
 
 if (!MONGODB_URI) {
-  throw new Error("MONGODB_URI is missing in environment variables");
+  throw new Error(
+    "Please define the MONGODB_URI environment variable inside .env.local"
+  );
 }
-// 2.first go to global.d.ts and create there code and return from here..
-let cached = global.mongooseConn;
+
+// FIX #1: Inline type assertion — no global.d.ts needed
+const globalWithMongoose = global as typeof globalThis & {
+  mongooseConn?: {
+    conn: Connection | null;
+    promise: Promise<Connection> | null;
+  };
+};
+
+let cached = globalWithMongoose.mongooseConn;
 
 if (!cached) {
-  cached = global.mongooseConn = {
-    conn: null,
-    promise: null,
-  };
+  cached = globalWithMongoose.mongooseConn = { conn: null, promise: null };
 }
 
-export const connectDb = async () => {
-  try {
-    // 1. Return existing connection
-    if (cached.conn) {
+export const connectDb = async (): Promise<Connection> => {
+  if (cached.conn) {
+    if (process.env.NODE_ENV === "development") {
       console.log("✅ Using cached database connection");
-      return cached.conn;
     }
-
-    if (cached.promise) {
-      console.log("promise conn");
-    }
-
-    // 2. Create new connection promise if none exists
-    if (!cached.promise) {
-      console.log("🚀 Creating new database connection...");
-
-      cached.promise = mongoose.connect(MONGODB_URI).then((c) => c.connection);
-    }
-
-    // 3. Await connection
-    cached.conn = await cached.promise;
-    console.log("✅ MongoDB connected");
     return cached.conn;
+  }
+
+  if (!cached.promise) {
+    if (process.env.NODE_ENV === "development") {
+      console.log("🚀 Creating new database connection...");
+    }
+
+    const opts: mongoose.ConnectOptions = {
+      bufferCommands: false,
+      maxPoolSize: 10,
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+    };
+
+    cached.promise = mongoose
+      .connect(MONGODB_URI, opts)
+      .then((mongooseInstance) => mongooseInstance.connection);
+  } else {
+    if (process.env.NODE_ENV === "development") {
+      console.log("⏳ Awaiting existing connection promise...");
+    }
+  }
+
+  try {
+    cached.conn = await cached.promise;
   } catch (error) {
     cached.promise = null;
-    console.error("❌ Database connection failed:", error);
-    throw error;
+    console.error("❌ MongoDB connection failed:", error);
+    throw new Error("Database connection failed. Check your MONGODB_URI.");
   }
+
+  // FIX #2: Explicit type for 'err'
+  cached.conn.on("error", (err: Error) => {
+    console.error("MongoDB runtime error:", err.message);
+  });
+
+  cached.conn.on("disconnected", () => {
+    console.warn("MongoDB disconnected. Resetting cache.");
+    cached.conn = null;
+    cached.promise = null;
+  });
+
+  return cached.conn;
 };
 
 export default connectDb;
