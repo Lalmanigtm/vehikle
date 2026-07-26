@@ -1,41 +1,60 @@
 import connectDb from "@/lib/db";
 import User from "@/models/user.model";
-import bcrypt from "bcryptjs";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
-  console.log("MONGODB_URI:", process.env.MONGODB_URI);
   try {
-    const { name, email, password } = await req.json();
+    // 1. Parse body
+    const body = await req.json();
+    const { name, email, password } = body;
+
+    // 2. Basic validation (fail fast before touching DB)
+    if (!name || !email || !password) {
+      return NextResponse.json(
+        { success: false, message: "All fields are required" },
+        { status: 400 }
+      );
+    }
+
+    // 3. Connect to database
     await connectDb();
-    const existingUser = await User.findOne({ email });
+
+    // 4. Check for existing user
+    const existingUser = await User.findOne({ email: email.toLowerCase() });
     if (existingUser) {
       return NextResponse.json(
-        { message: "Email already exist" },
-        { status: 400 },
+        { success: false, message: "Email already exists" },
+        { status: 409 } // 409 Conflict is more accurate than 400
       );
     }
 
-    if (password.length < 6) {
-      return NextResponse.json(
-        { message: "Password must be at least 6 character long..." },
-        { status: 400 },
-      );
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-
+    // 5. Create user — password hashing happens automatically in pre("save") hook
     const newUser = await User.create({
-      name,
-      email,
-      password: hashedPassword,
-      //  we write name , email single time but password in 2 times because name , email has key:value same but password has differnt
+      name: name.trim(),
+      email: email.toLowerCase().trim(),
+      password, // Plain text here! The model hashes it automatically.
     });
-    return NextResponse.json(newUser, { status: 201 });
-  } catch (error) {
+
+    // 6. Return sanitized user (never return the raw Mongoose document)
+    const sanitizedUser = {
+      id: newUser._id.toString(),
+      name: newUser.name,
+      email: newUser.email,
+      role: newUser.role,
+      createdAt: newUser.createdAt,
+    };
+
     return NextResponse.json(
-      { message: `Register Error ${error}` },
-      { status: 500 },
+      { success: true, message: "User registered successfully", user: sanitizedUser },
+      { status: 201 }
+    );
+  } catch (error) {
+    // 7. Safe error logging (server only) + generic client message
+    console.error("Registration error:", error);
+
+    return NextResponse.json(
+      { success: false, message: "Something went wrong. Please try again." },
+      { status: 500 }
     );
   }
 }
