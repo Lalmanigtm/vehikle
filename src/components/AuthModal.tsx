@@ -21,7 +21,7 @@ const AuthModal = ({ open, onClose }: propType) => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            // onClick={onClose}
+            onClick={onClose}
             className="fixed inset-0 z-90 bg-black/80 backdrop-blur-md"
           >
             <motion.div
@@ -36,14 +36,15 @@ const AuthModal = ({ open, onClose }: propType) => {
                   className="absolute right-4 top-4 text-gray-600 hover:text-blue-700 transition"
                   onClick={onClose}
                 >
-                  <X />
+                  <X  size={20} />
+                   </div>
 
                   <div className="mb-6 text-center">
                     <h1 className="text-3xl font-extrabold tracking-widest">
-                      Vehikle
+                      Gaddi
                     </h1>
                     <p className="mt-1  text-xs text-gray-500">
-                      Premium Vekikle Bookings...
+                      Premium Gaddi Bookings...
                     </p>
                   </div>
 
@@ -79,6 +80,8 @@ const AuthModal = ({ open, onClose }: propType) => {
                             />
                           </div>
 
+
+
                           <div className="flex items-center gap-3 border border-black/20 rounded-xl px-4 py-3 ">
                             <Lock size={18} className="text-gray-500" />
                             <input
@@ -88,9 +91,13 @@ const AuthModal = ({ open, onClose }: propType) => {
                             />
                           </div>
 
+
+
                           <button className="w-full h-11 rounded-xl bg-black text-white font-semibold hover:bg-gray-900 transition">
                             Login
                           </button>
+
+
                         </div>
 
                         <p className="mt-6 text-center text-sm text-gray-500">
@@ -155,11 +162,13 @@ const AuthModal = ({ open, onClose }: propType) => {
                             Login
                           </div>
                         </p>
+
+                        
                       </motion.div>
                     )}
                   </div>
                 </div>
-              </div>
+             
             </motion.div>
           </motion.div>
         </>
