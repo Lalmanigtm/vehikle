@@ -94,7 +94,7 @@ const AuthModal = ({ open, onClose }: propType) => {
                         </div>
 
                         <p className="mt-6 text-center text-sm text-gray-500">
-                          Don't have an account ?{" "}
+                          Donot have an account ?{" "}
                           <div
                             className="text-black font-medium hover:underline"
                             onClick={() => setStep("signup")}
