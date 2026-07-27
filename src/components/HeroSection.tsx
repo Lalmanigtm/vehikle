@@ -3,7 +3,7 @@ import React from "react";
 import { motion } from "motion/react";
 import { Bike, Bus, Car, Truck } from "lucide-react";
 
-const HeroSection = () => {
+const HeroSection = ({ onAuthRequired }: { onAuthRequired :()=>void}) => {
   return (
     <div className="relative min-h-screen w-full overflow-hidden">
       <div
@@ -46,6 +46,7 @@ const HeroSection = () => {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           className="mt-12 px-10 py-4 bg-white text-black rounded-full font-semibold shadow-xl flex gap-8 "
+          onClick={onAuthRequired}
         >
           Book Now
         </motion.button>
