@@ -259,6 +259,8 @@ const AuthModal = ({ open, onClose }: AuthModalProps) => {
     if (error) setError(null);
   };
 
+  const session=useSession();
+  console.log(session);
   const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -292,7 +294,7 @@ const AuthModal = ({ open, onClose }: AuthModalProps) => {
     }
   };
 
-const {data} = useSession();
+
   const handleLogin = async () => {
     setLoading(true);
      const res = await signIn("credentials", {
@@ -304,6 +306,9 @@ const {data} = useSession();
     console.log(res);
   };
 
+  const handleGoogleSignIn = async () => {
+ await signIn("google");
+  }
   return (
     <div className="fixed inset-0 z-100 flex items-center justify-center">
       {/* Backdrop */}
@@ -329,7 +334,7 @@ const {data} = useSession();
         </div>
 
         {/* Google Button */}
-        <button className="w-full h-11 rounded-xl border border-black/20 flex items-center justify-center gap-3 text-sm font-semibold hover:bg-black hover:text-white transition">
+        <button className="w-full h-11 rounded-xl border border-black/20 flex items-center justify-center gap-3 text-sm font-semibold hover:bg-black hover:text-white transition" onClick={handleGoogleSignIn}>
           <Image src="/google.png" alt="Google" width={20} height={20} />
           Continue with Google
         </button>
