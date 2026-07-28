@@ -231,10 +231,11 @@
 // export default AuthModal;
 "use client";
 
-import { useState, FormEvent } from "react";
-import { X, Mail, Lock, User, Eye, EyeOff, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { X, Mail, Lock, User, Eye, EyeOff, CircleDashed } from "lucide-react";
 import Image from "next/image";
 import axios from "axios";
+import { signIn } from "next-auth/react";
 
 interface AuthModalProps {
   open: boolean;
@@ -258,7 +259,7 @@ const AuthModal = ({ open, onClose }: AuthModalProps) => {
     if (error) setError(null);
   };
 
-  const handleSignUp = async (e: FormEvent) => {
+  const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!form.name.trim() || !form.email.trim() || !form.password) {
@@ -289,6 +290,18 @@ const AuthModal = ({ open, onClose }: AuthModalProps) => {
     } finally {
       setLoading(false);
     }
+  };
+
+const {data} = useSession();
+  const handleLogin = async () => {
+    setLoading(true);
+     const res = await signIn("credentials", {
+      email: form.email,
+      password: form.password,
+      redirect: false,
+    });
+    setLoading(false);
+    console.log(res);
   };
 
   return (
@@ -380,9 +393,9 @@ const AuthModal = ({ open, onClose }: AuthModalProps) => {
 
             <button
               type="submit"
-              className="w-full h-11 rounded-xl bg-black text-white font-semibold hover:bg-gray-900 transition"
+              className="w-full h-11 rounded-xl bg-black text-white font-semibold hover:bg-gray-900 transition" onClick={handleLogin}
             >
-              Login
+              {!loading? "Login" : <CircleDashed size={18} color="white" className="animate-spin" />}
             </button>
 
             <div className="mt-6 text-center text-sm text-gray-500">
@@ -449,13 +462,14 @@ const AuthModal = ({ open, onClose }: AuthModalProps) => {
               </button>
             </div>
 
+{error && <p className="text-red-500 text-sm text-center">{error}</p>}
+
             <button
-              type="submit"
               disabled={loading}
-              className="w-full h-11 rounded-xl bg-black text-white font-semibold hover:bg-gray-900 transition disabled:opacity-50 flex items-center justify-center gap-2"
+              className="w-full h-11 rounded-xl bg-black text-white font-semibold hover:bg-gray-900 transition disabled:opacity-50 flex items-center justify-center gap-2" onClick={handleSignUp}
             >
-              {loading && <Loader2 size={18} className="animate-spin" />}
-              Sign Up
+              {!loading? "Sign Up" : <CircleDashed size={18} color="white" className="animate-spin" />}
+             
             </button>
 
             <div className="mt-6 text-center text-sm text-gray-500">
